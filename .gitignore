@@ -2,7 +2,7 @@
 __pycache__/
 *.py[cod]
 *$py.class
-data/
+data/cifar*
 
 # C extensions
 *.so
@@ -133,3 +133,4 @@ results/
 
 tmp.py
 standard_training.py
+.idea/

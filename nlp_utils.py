@@ -56,6 +56,12 @@ class Dataset(torch.utils.data.Dataset):
         label = self.mapping.get(idx, label)
         return sample, label
 
+    def cleanse(self, remove_list):
+        remove_list = set(remove_list)
+        self.texts = [text for idx, text in enumerate(self.texts) if idx not in remove_list]
+        self.labels = [label for idx, label in enumerate(self.labels) if idx not in remove_list]
+        self.mapping = {}
+
 
 class BertClassifier(nn.Module):
 

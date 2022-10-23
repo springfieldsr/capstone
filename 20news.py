@@ -1,9 +1,4 @@
-import re
-import string
-import pandas as pd
-from sklearn.datasets import fetch_20newsgroups
 from nlp_utils import *
-
 from options import Options
 
 
@@ -11,6 +6,7 @@ def main():
     args = Options()
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(device)
 
     df_train, df_val = create_dataframes(args.dataset)
     print(len(df_train), len(df_val))
@@ -38,6 +34,14 @@ def main():
             "The model detected {} shuffled label training samples out of {} total samples".format(len(noise_detected),
                                                                                                    len(changed_indices)
                                                                                                    ))
+    else:
+        print("Found {} total noises, saving...".format(len(pred_indices)))
+        np.save("results.npy", np.array(pred_indices))
+
+    print("Removing noises and beginning training...")
+    model = BertClassifier(num_classes=num_classes).to(device)
+    train_dataset.cleanse(pred_indices)
+    train(model, args.epochs, True, train_dataset, val_dataset, device, args)
 
 
 if __name__ == '__main__':
