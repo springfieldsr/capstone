@@ -4,7 +4,7 @@ import re
 import string
 import numpy as np
 import pandas as pd
-from transformers import BertTokenizer, BertModel
+from transformers import BertTokenizer, BertModel, DistilBertModel, DistilBertTokenizer
 from torch import nn
 
 from torch.optim import Adam
@@ -14,7 +14,8 @@ from sklearn.datasets import fetch_20newsgroups
 
 from const import PATIENCE_EPOCH
 
-tokenizer = BertTokenizer.from_pretrained('bert-base-cased')
+# tokenizer = BertTokenizer.from_pretrained('bert-base-cased')
+tokenizer = DistilBertTokenizer.from_pretrained("distilbert-base-cased")
 
 
 class Dataset(torch.utils.data.Dataset):
@@ -69,14 +70,17 @@ class BertClassifier(nn.Module):
 
         super(BertClassifier, self).__init__()
 
-        self.bert = BertModel.from_pretrained('bert-base-cased')
+        # self.bert = BertModel.from_pretrained('bert-base-cased')
+        self.bert = DistilBertModel.from_pretrained("distilbert-base-cased")
         self.dropout = nn.Dropout(dropout)
         self.linear = nn.Linear(768, num_classes)
         self.relu = nn.ReLU()
 
     def forward(self, input_id, mask):
 
-        _, pooled_output = self.bert(input_ids= input_id, attention_mask=mask,return_dict=False)
+        # _, pooled_output = self.bert(input_ids= input_id, attention_mask=mask,return_dict=False)
+        pooled_output = torch.mean(self.bert(input_ids= input_id, attention_mask=mask)['last_hidden_state'], dim=1)
+
         dropout_output = self.dropout(pooled_output)
         final_layer = self.linear(dropout_output)
         # final_layer = self.relu(linear_output)
