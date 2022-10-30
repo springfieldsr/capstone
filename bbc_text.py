@@ -1,11 +1,11 @@
 import pandas as pd
 from nlp_utils import *
 
-from options import Options
+from options import options
 
 
 def main():
-    args = Options()
+    args = options()
     print(args)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

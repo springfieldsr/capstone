@@ -36,6 +36,9 @@ class ShuffledDataset():
         elif dataset_name == "CIFAR100":
             self.dataset = torchvision.datasets.CIFAR100(root=root, train=train, download=download, transform=transform)
             self.label_len = 100
+        elif dataset_name == "MNIST":
+            self.dataset = torchvision.datasets.MNIST(root=root, train=train, download=download, transform=transform)
+            self.label_len = 10
         else:
             raise NotImplementedError
 
@@ -119,9 +122,9 @@ def train(model, epoch, pretrain, train_dataset, test_dataloader, device, args):
         string of either 'cuda' or 'cpu'
     """
     if pretrain:
-        print("Pretraining Begins")
-    else:
         print("Noise Detection Begins")
+    else:
+        print("Training with Clean Dataset Begins")
 
     # Important! Set the reduction to be None which allows single sample loss recording
     criterion = nn.CrossEntropyLoss(reduction='none')
@@ -129,7 +132,7 @@ def train(model, epoch, pretrain, train_dataset, test_dataloader, device, args):
 
     best_val_acc = 0
     patience = 0
-    if not pretrain:
+    if pretrain:
         loss_record = torch.zeros(len(train_dataset)).to(device)
     
     for e in range(epoch):
@@ -152,7 +155,7 @@ def train(model, epoch, pretrain, train_dataset, test_dataloader, device, args):
                 loss_list = criterion(logits, y)
 
                 # Begin loss recording at the assigned epoch
-                if not pretrain and e >= epoch * args.recording_point:
+                if pretrain:
                     sample_indices = feed_indices[total : total + X.shape[0]]
                     for idx, i in enumerate(sample_indices):
                         loss_record[i] += loss_list[idx]
@@ -168,31 +171,30 @@ def train(model, epoch, pretrain, train_dataset, test_dataloader, device, args):
                 sum_acc += acc
                 total += X.shape[0]
                 pbar.set_postfix(loss=loss_reduced.item(),
-                                     acc=sum_acc / total)
+                                 acc=sum_acc / total)
         
         validation_accuracy = eval(model, test_dataloader, device)
-        print("Epoch {} - Training loss: {:.4f}, Validation Accuracy: {:.4f}".format(e, train_loss/len(dataloader), validation_accuracy))
+        print("Epoch {} - Training loss: {:.4f}, Validation Accuracy: {:.4f}".format(e, train_loss/len(dataloader),
+                                                                                     validation_accuracy))
 
         # Early stopping
-        if pretrain:
+        if args.early_stop:
             if validation_accuracy > best_val_acc:
                 best_val_acc = validation_accuracy
             else:
                 patience += 1
                 if patience > PATIENCE_EPOCH:
                     print("Training early stops at epoch {}".format(e))
-                    return e if pretrain else loss_record
+                    return loss_record if pretrain else e
 
     if pretrain:
-        print("Training finished for total {} epochs".format(e))
-    else:
         print("Noise detection training finished, returning loss recording...")
-    return epoch if pretrain else loss_record
-
+    else:
+        print("Training finished for total {} epochs".format(e))
+    return loss_record if pretrain else epoch
 
 
 def SaveEnvironment():
-
     pass
 
 

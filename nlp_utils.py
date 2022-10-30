@@ -25,7 +25,7 @@ class Dataset(torch.utils.data.Dataset):
         self.labels = list(df['label'])
         self.label_category = list(set(self.labels))
         self.texts = [tokenizer(text,
-                               padding='max_length', max_length = 512, truncation=True,
+                                padding='max_length', max_length=512, truncation=True,
                                 return_tensors="pt") for text in df['text']]
         percentage = train * shuffle_percentage
         dataset_len = len(self.labels)
@@ -83,7 +83,6 @@ class BertClassifier(nn.Module):
 
         dropout_output = self.dropout(pooled_output)
         final_layer = self.linear(dropout_output)
-        # final_layer = self.relu(linear_output)
 
         return final_layer
 
@@ -96,7 +95,7 @@ def train(model, epochs, pretrain, train_dataset, val_dataset, device, args):
 
     best_val_acc = 0
     patience = 0
-    if not pretrain:
+    if pretrain:
         loss_record = torch.zeros(len(train_dataset)).to(device)
 
     for epoch_num in range(epochs):
@@ -121,7 +120,7 @@ def train(model, epochs, pretrain, train_dataset, val_dataset, device, args):
             batch_loss_list = criterion(output, train_label.long())
 
             # Begin loss recording at the assigned epoch
-            if not pretrain and epoch_num >= epochs * args.recording_point:
+            if pretrain:
                 sample_indices = feed_indices[sample_count: sample_count + train_label.shape[0]]
                 for idx, i in enumerate(sample_indices):
                     loss_record[i] += batch_loss_list[idx]
@@ -165,7 +164,7 @@ def train(model, epochs, pretrain, train_dataset, val_dataset, device, args):
                 | Val Accuracy: {total_acc_val / len(val_dataset): .3f}')
 
         # Early stopping
-        if pretrain:
+        if args.early_stop:
             if val_acc > best_val_acc:
                 best_val_acc = val_acc
                 patience = 0
@@ -173,13 +172,13 @@ def train(model, epochs, pretrain, train_dataset, val_dataset, device, args):
                 patience += 1
                 if patience > PATIENCE_EPOCH:
                     print("Training early stops at epoch {}".format(epoch_num))
-                    return epoch_num if pretrain else loss_record
+                    return loss_record if pretrain else epoch_num
 
     if pretrain:
-        print("Training finished for total {} epochs".format(epoch_num))
-    else:
         print("Noise detection training finished, returning loss recording...")
-    return epochs if pretrain else loss_record
+    else:
+        print("Training finished for total {} epochs".format(epochs))
+    return loss_record if pretrain else epochs
 
 
 def create_dataframes(dataset_name='bbc_text'):

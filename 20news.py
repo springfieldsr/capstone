@@ -1,9 +1,9 @@
 from nlp_utils import *
-from options import Options
+from options import options
 
 
 def main():
-    args = Options()
+    args = options()
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(device)
@@ -18,10 +18,7 @@ def main():
     num_classes = 5 if args.dataset == 'bbc_text' else 20
 
     model = BertClassifier(num_classes=num_classes).to(device)
-    final_epochs = train(model, args.epochs, True, train_dataset, val_dataset, device, args)
-
-    model = BertClassifier(num_classes=num_classes).to(device)
-    loss_recording = train(model, final_epochs, False, train_dataset, val_dataset, device, args)
+    loss_recording = train(model, args.epochs, True, train_dataset, val_dataset, device, args)
 
     training_size = len(train_dataset)
     pred_indices = [t[1] for t in
@@ -41,7 +38,7 @@ def main():
     print("Removing noises and beginning training...")
     model = BertClassifier(num_classes=num_classes).to(device)
     train_dataset.cleanse(pred_indices)
-    train(model, args.epochs, True, train_dataset, val_dataset, device, args)
+    train(model, args.epochs, False, train_dataset, val_dataset, device, args)
 
 
 if __name__ == '__main__':
