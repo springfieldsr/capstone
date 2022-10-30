@@ -128,7 +128,7 @@ def train(model, epoch, pretrain, train_dataset, test_dataloader, device, args):
 
     # Important! Set the reduction to be None which allows single sample loss recording
     criterion = nn.CrossEntropyLoss(reduction='none')
-    opt = torch.optim.Adam(model.parameters(), lr=args.lr)
+    opt = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=5e-4)
 
     best_val_acc = 0
     patience = 0
@@ -181,6 +181,7 @@ def train(model, epoch, pretrain, train_dataset, test_dataloader, device, args):
         if args.early_stop:
             if validation_accuracy > best_val_acc:
                 best_val_acc = validation_accuracy
+                patience = 0
             else:
                 patience += 1
                 if patience > PATIENCE_EPOCH:

@@ -1,4 +1,4 @@
-# 260C_Project README
+# Noisy Label Detection
 
 ## Install Environment
 
@@ -13,7 +13,7 @@ source ./venv/bin/activate
 ### Get Project
 
 ```bash
-git clone https://github.com/springfieldsr/260c_project.git
+git clone https://github.com/springfieldsr/capstone
 ```
 
 ### Install  dependencies package
@@ -26,19 +26,13 @@ pip install -r requirements.txt
 
 ## Execution
 
-### Cmd
-
 ```bash
-python NoisyDetection.py
-```
-
-### Help
-
-```bash
-usage: NoisyDetection.py [-h] [--datasets {CIFAR10,CIFAR100}] [--models {resnet18,}]\
-                              [--bs {1,4,16,64,256,1024}] [--epochs EPOCHS] [--lr LR]\
-                              [--sp shuffle_percentage] [--rp recording_point]
-
+usage: image_cls.py [-h] [--datasets {CIFAR10,CIFAR100, MNIST}] [--models {resnet18, resnet101}]\
+                              [--bs {1,4,16,32,64,256,1024}] [--epochs EPOCHS] [--lr LR]\
+                              [--sp shuffle_percentage] [--es early_stop] [--k noise rate]
+usage: text_cls.py [-h] [--datasets {bbc_text, 20news}]\
+                              [--bs {1,4,16,32,64,256,1024}] [--epochs EPOCHS] [--lr LR]\
+                              [--sp shuffle_percentage] [--es early_stop] [--k noise rate]
 .
 
 optional arguments:
